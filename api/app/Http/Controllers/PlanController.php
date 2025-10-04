@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Plan;
+use Illuminate\Http\JsonResponse;
+use Src\Application\UseCases\ListPlansUseCase;
 
 class PlanController extends Controller
 {
-    /**
-     * Display a listing of the plans.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+
+    public function index(ListPlansUseCase $useCase): JsonResponse
     {
-        return Plan::all();
+        return response()->json($useCase->execute());
     }
+
 }
