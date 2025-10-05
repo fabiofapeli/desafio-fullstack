@@ -2,6 +2,7 @@
 
 namespace Src\Infra\Eloquent;
 
+use Database\Factories\ContractModelFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -25,6 +26,11 @@ class ContractModel extends Model
         'expiration_date' => 'datetime',
         'ended_at' => 'datetime',
     ];
+
+    protected static function newFactory()
+    {
+        return ContractModelFactory::new();
+    }
 
     public function user()
     {

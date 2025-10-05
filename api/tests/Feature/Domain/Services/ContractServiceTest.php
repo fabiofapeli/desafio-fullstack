@@ -1,0 +1,65 @@
+<?php
+
+namespace Tests\Feature\Domain\Services;
+
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Src\Domain\Services\ContractService;
+use Src\Infra\Eloquent\ContractModel;
+use Src\Infra\Eloquent\PlanModel;
+use Src\Infra\Eloquent\UserModel;
+use Tests\TestCase;
+
+class ContractServiceTest extends TestCase
+{
+    use RefreshDatabase;
+    public function test_get_active_plan_returns_contract_when_active()
+    {
+        $user = UserModel::factory()->create();
+
+        $active = ContractModel::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'expiration_date' => Carbon::now()->addDays(5),
+        ]);
+
+        $service = new ContractService();
+
+        $found = $service->getActivePlan($user->id);
+
+        $this->assertNotNull($found);
+        $this->assertEquals($active->id, $found->id);
+    }
+
+    public function test_get_active_plan_returns_null_when_no_active_contract()
+    {
+        $user = UserModel::factory()->create();
+
+        // contrato expirado
+        ContractModel::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'inactive',
+            'expiration_date' => Carbon::now()->subDay(),
+        ]);
+
+        $service = new ContractService();
+        $result = $service->getActivePlan($user->id);
+
+        $this->assertNull($result);
+    }
+
+    public function test_create_new_contract_creates_payment_and_sets_active()
+    {
+        $user = UserModel::factory()->create();
+        $plan = PlanModel::factory()->create(['price' => 99.9]);
+
+        $service = new ContractService();
+        $contract = $service->createNewContract($user->id, $plan->id);
+
+        $this->assertEquals('active', $contract->status);
+        $this->assertCount(1, $contract->payments);
+        $this->assertEquals('paid', $contract->payments->first()->status);
+        $this->assertEquals($plan->price, $contract->payments->first()->price);
+    }
+}
+
