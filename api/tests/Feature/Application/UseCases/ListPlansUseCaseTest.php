@@ -3,6 +3,7 @@
 namespace Application\UseCases;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Src\Application\UseCases\DTO\ListPlansInputDto;
 use Src\Application\UseCases\ListPlansUseCase;
 use Src\Infra\Eloquent\PlanModel;
 use Tests\TestCase;
@@ -22,7 +23,9 @@ class ListPlansUseCaseTest extends TestCase
         $useCase = new ListPlansUseCase();
 
         // Act
-        $result = $useCase->execute();
+        $result = $useCase->execute(
+            new ListPlansInputDto()
+        )->items;
 
         // Assert
         $this->assertCount(3, $result);

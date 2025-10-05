@@ -2,12 +2,16 @@
 
 namespace Src\Application\UseCases;
 
+use Src\Application\UseCases\DTO\ListPlansInputDto;
+use Src\Application\UseCases\DTO\ListPlansOutputDto;
 use Src\Infra\Eloquent\PlanModel;
 
 class ListPlansUseCase
 {
-    public function execute(): array
+    public function execute(ListPlansInputDto $input): ListPlansOutputDto
     {
-        return PlanModel::all()->toArray();
+        return new ListPlansOutputDto(
+            PlanModel::all()->toArray()
+        );
     }
 }
