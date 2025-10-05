@@ -1,6 +1,6 @@
 <?php
 
-namespace Src\Application\UseCases\DTO;
+namespace Src\Application\UseCases\DTO\Plan;
 
 class ListPlansOutputDto
 {

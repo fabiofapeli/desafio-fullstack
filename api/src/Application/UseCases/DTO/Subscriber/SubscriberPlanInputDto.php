@@ -1,0 +1,13 @@
+<?php
+
+namespace Src\Application\UseCases\DTO\Subscriber;
+
+class SubscriberPlanInputDto
+{
+    public function __construct(
+        public int $userId,
+        public int $planId,
+    ){
+
+    }
+}

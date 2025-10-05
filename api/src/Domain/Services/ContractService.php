@@ -3,6 +3,8 @@
 namespace Src\Domain\Services;
 
 use Carbon\Carbon;
+use Src\Application\UseCases\DTO\Contract\ContractServiceInputDto;
+use Src\Application\UseCases\DTO\Contract\ContractServiceOutputDto;
 use Src\Infra\Eloquent\ContractModel;
 
 class ContractService
@@ -21,27 +23,29 @@ class ContractService
     /**
      * Cria um novo contrato ativo e marca o pagamento como pago.
      */
-    public function createNewContract(int $userId, int $planId): ContractModel
+    public function createNewContract(ContractServiceInputDto $input): ContractServiceOutputDto
     {
         $now = Carbon::now();
         $expiration = $now->copy()->addMonth();
 
         $contract = ContractModel::create([
-            'user_id' => $userId,
-            'plan_id' => $planId,
+            'user_id' => $input->userId,
+            'plan_id' => $input->planId,
             'started_at' => $now,
             'expiration_date' => $expiration,
             'status' => 'active',
         ]);
 
-        $contract->payments()->create([
+        $payment = $contract->payments()->create([
             'type' => 'pix',
             'price' => $contract->plan->price,
             'payment_at' => $now,
             'status' => 'paid',
         ]);
 
-        return $contract->load(['plan', 'payments']);
+        return new ContractServiceOutputDto(
+            $contract->toArray(),
+            [$payment->toArray()]
+        );
     }
 }
-

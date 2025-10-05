@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Application\UseCases;
 
-use PHPUnit\Framework\TestCase;
-use Src\Application\UseCases\DTO\ListPlansInputDto;
-use Src\Application\UseCases\ListPlansUseCase;
-use Src\Infra\Eloquent\PlanModel;
 use Mockery;
+use PHPUnit\Framework\TestCase;
+use Src\Application\UseCases\DTO\Plan\ListPlansInputDto;
+use Src\Application\UseCases\Plan\ListPlansUseCase;
+use Src\Infra\Eloquent\PlanModel;
 
 class ListPlansUseCaseTest extends TestCase
 {

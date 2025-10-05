@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Src\Application\UseCases\SubscribePlanUseCase;
+use Src\Application\UseCases\DTO\Subscriber\SubscriberPlanInputDto;
+use Src\Application\UseCases\Subscriber\SubscribePlanUseCase;
 use Src\Domain\Exceptions\BusinessException;
 
 class ContractController extends Controller
@@ -16,11 +17,15 @@ class ContractController extends Controller
                 'plan_id' => 'required|exists:plans,id',
             ]);
 
-            $userId = 1; // Usuário fixo (simulando logado)
+            $userId = 1; // simula usuário logado
 
-            $contract = $useCase->execute($userId, $validated['plan_id']);
+            $inputDto = new SubscriberPlanInputDto($userId, $validated['plan_id']);
+            $outputDto = $useCase->execute($inputDto);
 
-            return response()->json($contract, 201);
+            return response()->json([
+                'plan' => $outputDto->plan,
+                'payments' => $outputDto->payment,
+            ], Response::HTTP_CREATED);
 
         }
         catch (BusinessException $e) {

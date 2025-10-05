@@ -15,7 +15,7 @@ class ContractControllerTest extends TestCase
 
     public function test_user_can_create_new_contract_via_api()
     {
-        UserModel::factory()->create();
+        $user = UserModel::factory()->create();
         $plan = PlanModel::factory()->create(['price' => 120]);
 
         $response = $this->postJson('/api/contracts', [
@@ -23,15 +23,15 @@ class ContractControllerTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonFragment([
-                'plan_id' => $plan->id,
-                'status' => 'active',
-            ]);
+            ->assertJsonPath('plan.id', $plan->id)
+            ->assertJsonPath('payments.0.status', 'paid')
+            ->assertJsonPath('payments.0.price', 120);
 
         $this->assertDatabaseHas('contracts', [
             'plan_id' => $plan->id,
             'status' => 'active',
         ]);
+
         $this->assertDatabaseHas('payments', [
             'status' => 'paid',
         ]);

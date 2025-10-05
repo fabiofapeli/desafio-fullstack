@@ -3,8 +3,8 @@
 namespace Application\UseCases;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Src\Application\UseCases\DTO\ListPlansInputDto;
-use Src\Application\UseCases\ListPlansUseCase;
+use Src\Application\UseCases\DTO\Plan\ListPlansInputDto;
+use Src\Application\UseCases\Plan\ListPlansUseCase;
 use Src\Infra\Eloquent\PlanModel;
 use Tests\TestCase;
 

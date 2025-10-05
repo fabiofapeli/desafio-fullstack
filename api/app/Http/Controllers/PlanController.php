@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PlanResource;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Src\Application\UseCases\DTO\ListPlansInputDto;
-use Src\Application\UseCases\ListPlansUseCase;
+use Src\Application\UseCases\DTO\Plan\ListPlansInputDto;
+use Src\Application\UseCases\Plan\ListPlansUseCase;
 
 class PlanController extends Controller
 {

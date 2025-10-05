@@ -4,6 +4,7 @@ namespace Tests\Feature\Domain\Services;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Src\Application\UseCases\DTO\Contract\ContractServiceInputDto;
 use Src\Domain\Services\ContractService;
 use Src\Infra\Eloquent\ContractModel;
 use Src\Infra\Eloquent\PlanModel;
@@ -54,12 +55,18 @@ class ContractServiceTest extends TestCase
         $plan = PlanModel::factory()->create(['price' => 99.9]);
 
         $service = new ContractService();
-        $contract = $service->createNewContract($user->id, $plan->id);
 
-        $this->assertEquals('active', $contract->status);
-        $this->assertCount(1, $contract->payments);
-        $this->assertEquals('paid', $contract->payments->first()->status);
-        $this->assertEquals($plan->price, $contract->payments->first()->price);
+        $input = new ContractServiceInputDto(
+            $user->id,
+            $plan->id
+        );
+
+        $result = $service->createNewContract($input);
+
+        $this->assertEquals('active', $result->contract['status']);
+        $this->assertCount(1, $result->payments);
+        $this->assertEquals('paid', $result->payments[0]['status']);
+        $this->assertEquals($plan->price, $result->payments[0]['price']);
     }
 }
 

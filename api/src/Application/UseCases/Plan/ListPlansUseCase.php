@@ -1,9 +1,9 @@
 <?php
 
-namespace Src\Application\UseCases;
+namespace Src\Application\UseCases\Plan;
 
-use Src\Application\UseCases\DTO\ListPlansInputDto;
-use Src\Application\UseCases\DTO\ListPlansOutputDto;
+use Src\Application\UseCases\DTO\Plan\ListPlansInputDto;
+use Src\Application\UseCases\DTO\Plan\ListPlansOutputDto;
 use Src\Infra\Eloquent\PlanModel;
 
 class ListPlansUseCase
