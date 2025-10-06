@@ -57,4 +57,31 @@ class ContractControllerTest extends TestCase
         ->assertJsonFragment(['message' => 'Usuário já possui um plano ativo.']);
     }
 
+    public function test_api_returns_active_contract()
+    {
+        $user = UserModel::factory()->create();
+        $plan = PlanModel::factory()->create(['price' => 120]);
+
+        ContractModel::factory()->create([
+            'user_id' => $user->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'expiration_date' => now()->addDays(5),
+        ]);
+
+        $response = $this->getJson('/api/contracts/active');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['status' => 'active'])
+            ->assertJsonFragment(['price' => 120]);
+    }
+
+    public function test_api_returns_404_if_no_active_contract()
+    {
+        $response = $this->getJson('/api/contracts/active');
+
+        $response->assertStatus(404)
+            ->assertJsonFragment(['message' => 'Usuário não possui contrato ativo.']);
+    }
+
 }

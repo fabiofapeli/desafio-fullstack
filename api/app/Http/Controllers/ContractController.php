@@ -6,9 +6,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanInputDto;
+use Src\Application\UseCases\DTO\Subscriber\GetActivePlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\RenewPlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\SubscriberPlanInputDto;
 use Src\Application\UseCases\Subscriber\ChangePlanUseCase;
+use Src\Application\UseCases\Subscriber\GetActivePlanUseCase;
 use Src\Application\UseCases\Subscriber\RenewPlanUseCase;
 use Src\Application\UseCases\Subscriber\SubscribePlanUseCase;
 use Src\Domain\Exceptions\BusinessException;
@@ -109,6 +111,32 @@ class ContractController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_CONFLICT);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function getActive(GetActivePlanUseCase $useCase): JsonResponse
+    {
+        try {
+            $userId = 1; // usuário logado simulado
+            $input = new GetActivePlanInputDto($userId);
+            $output = $useCase->execute($input);
+
+            return response()->json([
+                'contract' => $output->contract,
+                'plan' => $output->plan,
+                'payments' => $output->payments,
+            ], Response::HTTP_OK);
+
+        } catch (BusinessException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
 
         } catch (\Throwable $e) {
             return response()->json([
