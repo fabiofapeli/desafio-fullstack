@@ -30,3 +30,5 @@ Route::apiSingleton('user', UserController::class, ['only' => 'show']);
 
 Route::post('/contracts', [ContractController::class, 'store']);
 Route::post('/contracts/renew', [ContractController::class, 'renew']);
+Route::post('/contracts/change-plan', [ContractController::class, 'changePlan']);
+
