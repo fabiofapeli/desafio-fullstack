@@ -4,7 +4,8 @@ namespace Tests\Feature\Domain\Services;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Src\Application\UseCases\DTO\Contract\ContractServiceInputDto;
+use Src\Application\UseCases\DTO\Contract\NewContractInputDto;
+use Src\Domain\Exceptions\BusinessException;
 use Src\Domain\Services\ContractService;
 use Src\Infra\Eloquent\ContractModel;
 use Src\Infra\Eloquent\PlanModel;
@@ -49,6 +50,9 @@ class ContractServiceTest extends TestCase
         $this->assertNull($result);
     }
 
+    /**
+     * @throws BusinessException
+     */
     public function test_create_new_contract_creates_payment_and_sets_active()
     {
         $user = UserModel::factory()->create();
@@ -56,7 +60,7 @@ class ContractServiceTest extends TestCase
 
         $service = new ContractService();
 
-        $input = new ContractServiceInputDto(
+        $input = new NewContractInputDto(
             $user->id,
             $plan->id
         );
@@ -64,9 +68,8 @@ class ContractServiceTest extends TestCase
         $result = $service->createNewContract($input);
 
         $this->assertEquals('active', $result->contract['status']);
-        $this->assertCount(1, $result->payments);
-        $this->assertEquals('paid', $result->payments[0]['status']);
-        $this->assertEquals($plan->price, $result->payments[0]['price']);
+        $this->assertEquals('paid', $result->payment['status']);
+        $this->assertEquals($plan->price, $result->payment['price']);
     }
 }
 

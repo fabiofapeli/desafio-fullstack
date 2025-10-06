@@ -26,7 +26,7 @@ class SubscribePlanUseCaseTest extends TestCase
         $result = $useCase->execute(new SubscriberPlanInputDto($user->id, $plan->id));
 
         $this->assertEquals($plan->id, $result->plan['id']);
-        $this->assertEquals('paid', $result->payment[0]['status']);
+        $this->assertEquals('paid', $result->payment['status']);
     }
 
     public function test_user_cannot_subscribe_if_active_contract_exists()

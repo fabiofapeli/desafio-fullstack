@@ -24,8 +24,8 @@ class ContractControllerTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('plan.id', $plan->id)
-            ->assertJsonPath('payments.0.status', 'paid')
-            ->assertJsonPath('payments.0.price', 120);
+            ->assertJsonPath('payment.status', 'paid')
+            ->assertJsonPath('payment.price', 120);
 
         $this->assertDatabaseHas('contracts', [
             'plan_id' => $plan->id,
