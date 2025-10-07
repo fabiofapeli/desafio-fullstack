@@ -20,6 +20,10 @@ class SubscribePlanUseCase
     {
         $plan = PlanModel::findOrFail($input->planId);
 
+        if (!$plan) {
+            throw new BusinessException('Plano não encontrado.');
+        }
+
         $contractOutput = $this->contractService->createNewContract(
             new NewContractInputDto($input->userId, $plan->id)
         );

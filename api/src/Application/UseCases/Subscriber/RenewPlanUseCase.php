@@ -17,7 +17,6 @@ class RenewPlanUseCase
      */
     public function execute(RenewPlanInputDto $input): RenewPlanOutputDto
     {
-
         // Executa a renovação no service
         $output = $this->contractService->renewContract(
             new RenewContractInputDto($input->userId)

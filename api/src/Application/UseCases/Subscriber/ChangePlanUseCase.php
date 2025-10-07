@@ -6,6 +6,7 @@ use Src\Application\UseCases\DTO\Subscriber\ChangePlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanOutputDto;
 use Src\Domain\Exceptions\BusinessException;
 use Src\Domain\Services\ContractService;
+use Src\Infra\Eloquent\PlanModel;
 
 class ChangePlanUseCase
 {
@@ -16,6 +17,13 @@ class ChangePlanUseCase
      */
     public function execute(ChangePlanInputDto $input): ChangePlanOutputDto
     {
+
+        $plan = PlanModel::findOrFail($input->newPlanId);
+
+        if (!$plan) {
+            throw new BusinessException('Plano não encontrado.');
+        }
+
         $result = $this->contractService->changePlan(
             new ChangePlanInputDto(
                 $input->userId,
