@@ -10,6 +10,7 @@ use Src\Application\UseCases\DTO\Contract\RenewContractOutputDto;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanOutputDto;
 use Src\Domain\Entities\Enums\ContractStatus;
+use Src\Domain\Entities\Enums\RenewalPolicy;
 use Src\Domain\Exceptions\BusinessException;
 use Src\Infra\Eloquent\ContractModel;
 use Src\Infra\Eloquent\PlanModel;
@@ -46,6 +47,7 @@ class ContractService
             'plan_id' => $input->planId,
             'started_at' => $now,
             'expiration_date' => $expiration,
+            'next_renewal_available_at' => $this->computeNextRenewalAllowed($expiration),
             'status' => 'active',
         ]);
 
@@ -65,29 +67,53 @@ class ContractService
 
     public function renewContract(RenewContractInputDto $input): RenewContractOutputDto
     {
-        $activeContract = $this->getActivePlan($input->userId);
-
-        if (!$activeContract) {
+        $active = $this->getActivePlan($input->userId);
+        if (!$active) {
             throw new BusinessException('Usuário não possui contrato ativo para renovação.');
         }
 
-        // Atualiza data de expiração (+1 mês)
-        $activeContract->expiration_date = Carbon::parse($activeContract->expiration_date)->addMonth();
-        $activeContract->save();
+        $now = Carbon::now();
 
-        // Cria novo pagamento
-        $payment = $activeContract->payments()->create([
+        // 1) Checagem por janela usando o timestamp
+        if ($active->next_renewal_available_at && $now->lt($active->next_renewal_available_at)) {
+            $msg = sprintf(
+                'Renovação permitida apenas a partir de %s.',
+                $active->next_renewal_available_at->toDateTimeString()
+            );
+            throw new BusinessException($msg);
+        }
+
+        // 2) Ainda que o timestamp não esteja populado, respeite a política (fallback)
+        $daysRemaining = $now->diffInDays(Carbon::parse($active->expiration_date), false);
+        if ($daysRemaining > RenewalPolicy::DAYS_BEFORE_EXPIRATION_ALLOWED) {
+            throw new BusinessException(
+                sprintf(
+                    'Renovação permitida apenas a %d dias do vencimento (faltam %d dias).',
+                    RenewalPolicy::DAYS_BEFORE_EXPIRATION_ALLOWED,
+                    $daysRemaining
+                )
+            );
+        }
+
+        // 3) Renovar (+1 mês) e recalcular janela
+        $active->expiration_date = Carbon::parse($active->expiration_date)->addMonth();
+        $active->next_renewal_available_at = $this->computeNextRenewalAllowed($active->expiration_date);
+        $active->save();
+
+        $payment = $active->payments()->create([
             'type' => 'pix',
-            'price' => $activeContract->plan->price,
-            'payment_at' => Carbon::now(),
+            'price' => $active->plan->price,
+            'credit' => 0,
+            'payment_at' => $now,
             'status' => 'paid',
         ]);
 
         return new RenewContractOutputDto(
-            $activeContract->toArray(),
-            $payment->toArray()
+            $active->toArray(),
+            array_merge($payment->toArray(), ['credit' => $payment->credit ?? 0])
         );
     }
+
 
     /**
      * Mudança de plano:
@@ -128,6 +154,7 @@ class ContractService
             'plan_id' => $newPlan->id,
             'started_at' => $now,
             'expiration_date' => $now->copy()->addMonth(),
+            'next_renewal_available_at' => $this->computeNextRenewalAllowed($now->copy()->addMonth()),
             'status' => ContractStatus::ACTIVE,
         ]);
 
@@ -144,5 +171,10 @@ class ContractService
             $newContract->load('plan')->toArray(),
             $payment->toArray()
         );
+    }
+
+    private function computeNextRenewalAllowed(Carbon $expiration): Carbon
+    {
+        return $expiration->copy()->subDays(RenewalPolicy::DAYS_BEFORE_EXPIRATION_ALLOWED);
     }
 }

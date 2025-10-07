@@ -17,6 +17,7 @@ class ContractModel extends Model
         'plan_id',
         'started_at',
         'expiration_date',
+        'next_renewal_available_at',
         'ended_at',
         'status',
     ];
@@ -25,6 +26,7 @@ class ContractModel extends Model
         'started_at' => 'datetime',
         'expiration_date' => 'datetime',
         'ended_at' => 'datetime',
+        'next_renewal_available_at' => 'datetime',
     ];
 
     protected static function newFactory()
