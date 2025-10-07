@@ -57,7 +57,7 @@ class ContractService
             'price' => $contract->plan->price,
             'plan_value' => $contract->plan->price,
             'action' => PaymentAction::purchase,
-            'credit' => 0, // ✅ adiciona explicitamente o campo
+            'credit' => 0,
             'payment_at' => $now,
             'status' => 'paid',
         ]);
