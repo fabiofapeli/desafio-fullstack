@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\GetActivePlanInputDto;
+use Src\Application\UseCases\DTO\Subscriber\PreTransactionInputDto;
 use Src\Application\UseCases\DTO\Subscriber\RenewPlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\SubscriberPlanInputDto;
 use Src\Application\UseCases\Subscriber\ChangePlanUseCase;
 use Src\Application\UseCases\Subscriber\GetActivePlanUseCase;
+use Src\Application\UseCases\Subscriber\GetPreTransactionInfoUseCase;
 use Src\Application\UseCases\Subscriber\RenewPlanUseCase;
 use Src\Application\UseCases\Subscriber\SubscribePlanUseCase;
 use Src\Domain\Exceptions\BusinessException;
@@ -145,6 +147,33 @@ class ContractController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public function preview(Request $request, GetPreTransactionInfoUseCase $useCase): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'plan_id' => 'required|exists:plans,id',
+            ]);
+
+            $userId = 1; // usuário logado simulado
+            $input = new PreTransactionInputDto($userId, (int) $validated['plan_id']);
+            $output = $useCase->execute($input);
+
+            return response()->json($output->toArray(), Response::HTTP_OK);
+
+        } catch (\Src\Domain\Exceptions\BusinessException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_CONFLICT);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 }
 

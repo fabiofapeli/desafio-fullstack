@@ -2,7 +2,7 @@
 
 namespace Src\Application\UseCases\Subscriber;
 
-use Src\Application\UseCases\DTO\Contract\NewContractInputDto;
+use Src\Application\UseCases\DTO\Subscriber\NewContractInputDto;
 use Src\Application\UseCases\DTO\Subscriber\SubscriberPlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\SubscriberPlanOutputDTO;
 use Src\Domain\Exceptions\BusinessException;

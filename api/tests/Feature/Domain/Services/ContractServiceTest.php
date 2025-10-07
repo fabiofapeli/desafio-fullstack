@@ -4,8 +4,8 @@ namespace Tests\Feature\Domain\Services;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Src\Application\UseCases\DTO\Contract\NewContractInputDto;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanInputDto;
+use Src\Application\UseCases\DTO\Subscriber\NewContractInputDto;
 use Src\Domain\Exceptions\BusinessException;
 use Src\Domain\Services\ContractService;
 use Src\Infra\Eloquent\ContractModel;

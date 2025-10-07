@@ -33,5 +33,7 @@ Route::post('/contracts', [ContractController::class, 'store']);
 Route::post('/contracts/renew', [ContractController::class, 'renew']);
 Route::post('/contracts/change-plan', [ContractController::class, 'changePlan']);
 Route::get('/payments/history', [PaymentController::class, 'history']);
+Route::get('/contracts/preview', [ContractController::class, 'preview']);
+
 
 

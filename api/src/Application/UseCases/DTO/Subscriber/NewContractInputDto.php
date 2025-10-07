@@ -1,5 +1,5 @@
 <?php
-namespace Src\Application\UseCases\DTO\Contract;
+namespace Src\Application\UseCases\DTO\Subscriber;
 
 class NewContractInputDto
 {
