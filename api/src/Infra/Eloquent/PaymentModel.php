@@ -15,12 +15,14 @@ class PaymentModel extends Model
         'contract_id',
         'type',
         'price',
+        'credit',   // ✅ adicione esta linha
         'payment_at',
         'status',
     ];
 
     protected $casts = [
         'payment_at' => 'datetime',
+        'credit' => 'float', // ✅ garante precisão ao converter
         'price' => 'float',
     ];
 

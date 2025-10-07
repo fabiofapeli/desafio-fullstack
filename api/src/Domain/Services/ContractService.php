@@ -52,6 +52,7 @@ class ContractService
         $payment = $contract->payments()->create([
             'type' => 'pix',
             'price' => $contract->plan->price,
+            'credit' => 0, // ✅ adiciona explicitamente o campo
             'payment_at' => $now,
             'status' => 'paid',
         ]);
@@ -104,42 +105,37 @@ class ContractService
             throw new BusinessException('Usuário não possui contrato ativo para mudança de plano.');
         }
 
-        // Calcula diferença real de dias (incluindo fração de horas)
-        $now = Carbon::now();
-        $expirationDate = Carbon::parse($activeContract->expiration_date);
-        $daysRemaining = max(0, $now->floatDiffInDays($expirationDate, false));
-
-        // Recupera planos antigo e novo
-        $oldPlan = PlanModel::find($activeContract->plan_id);
+        $oldPlan = PlanModel::findOrFail($activeContract->plan_id);
         $newPlan = PlanModel::findOrFail($input->newPlanId);
 
-        // Valor diário de cada plano
-        $oldDaily = $oldPlan->price / 30;
-        $newDaily = $newPlan->price / 30;
+        // cálculo de crédito proporcional
+        $daysInMonth = 30;
+        $daysUsed = $activeContract->started_at->diffInDays($now);
+        $daysRemaining = max($daysInMonth - $daysUsed, 0);
 
-        // Converte crédito remanescente em dias no novo plano
-        $creditValue = $daysRemaining * $oldDaily;
-        $extraDays = $creditValue / $newDaily;
+        $dailyRateOld = $oldPlan->price / $daysInMonth;
+        $credit = round($daysRemaining * $dailyRateOld, 2);
 
-        // Nova data de expiração: +1 mês + dias extras (fração incluída)
-        $expiration = $now->copy()->addMonth()->addDays(round($extraDays));
+        // valor do novo pagamento = novo plano - crédito
+        $amountToPay = max($newPlan->price - $credit, 0);
 
-        // Inativar o contrato anterior
+        // inativar contrato antigo
         $activeContract->update(['status' => ContractStatus::INACTIVE]);
 
-        // Criar o novo contrato com o novo plano
+        // criar novo contrato
         $newContract = ContractModel::create([
             'user_id' => $input->userId,
-            'plan_id' => $input->newPlanId,
+            'plan_id' => $newPlan->id,
             'started_at' => $now,
-            'expiration_date' => $expiration,
+            'expiration_date' => $now->copy()->addMonth(),
             'status' => ContractStatus::ACTIVE,
         ]);
 
-        // Criar novo pagamento
+        // registrar pagamento com crédito aplicado
         $payment = $newContract->payments()->create([
             'type' => 'pix',
-            'price' => $newPlan->price,
+            'price' => $amountToPay,
+            'credit' => $credit,
             'payment_at' => $now,
             'status' => 'paid',
         ]);
