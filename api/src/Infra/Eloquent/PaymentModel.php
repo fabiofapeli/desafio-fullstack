@@ -2,6 +2,7 @@
 
 namespace Src\Infra\Eloquent;
 
+use Database\Factories\PaymentModelFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,18 +14,27 @@ class PaymentModel extends Model
 
     protected $fillable = [
         'contract_id',
+        'action',
         'type',
+        'plan_value',
         'price',
-        'credit',   // ✅ adicione esta linha
+        'credit',
         'payment_at',
         'status',
     ];
 
     protected $casts = [
         'payment_at' => 'datetime',
-        'credit' => 'float', // ✅ garante precisão ao converter
+        'plan_value' => 'float',
+        'credit' => 'float',
         'price' => 'float',
     ];
+
+
+    protected static function newFactory()
+    {
+        return PaymentModelFactory::new();
+    }
 
     public function contract()
     {

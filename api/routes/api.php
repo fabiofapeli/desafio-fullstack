@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,6 @@ Route::apiSingleton('user', UserController::class, ['only' => 'show']);
 Route::post('/contracts', [ContractController::class, 'store']);
 Route::post('/contracts/renew', [ContractController::class, 'renew']);
 Route::post('/contracts/change-plan', [ContractController::class, 'changePlan']);
+Route::get('/payments/history', [PaymentController::class, 'history']);
+
 

@@ -10,6 +10,7 @@ use Src\Application\UseCases\DTO\Contract\RenewContractOutputDto;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanInputDto;
 use Src\Application\UseCases\DTO\Subscriber\ChangePlanOutputDto;
 use Src\Domain\Entities\Enums\ContractStatus;
+use Src\Domain\Entities\Enums\PaymentAction;
 use Src\Domain\Entities\Enums\RenewalPolicy;
 use Src\Domain\Exceptions\BusinessException;
 use Src\Infra\Eloquent\ContractModel;
@@ -54,6 +55,8 @@ class ContractService
         $payment = $contract->payments()->create([
             'type' => 'pix',
             'price' => $contract->plan->price,
+            'plan_value' => $contract->plan->price,
+            'action' => PaymentAction::purchase,
             'credit' => 0, // ✅ adiciona explicitamente o campo
             'payment_at' => $now,
             'status' => 'paid',
@@ -103,6 +106,8 @@ class ContractService
         $payment = $active->payments()->create([
             'type' => 'pix',
             'price' => $active->plan->price,
+            'plan_value' => $active->plan->price,
+            'action' => PaymentAction::renewal,
             'credit' => 0,
             'payment_at' => $now,
             'status' => 'paid',
@@ -162,6 +167,8 @@ class ContractService
         $payment = $newContract->payments()->create([
             'type' => 'pix',
             'price' => $amountToPay,
+            'plan_value' => $newPlan->price,
+            'action' => PaymentAction::purchase,
             'credit' => $credit,
             'payment_at' => $now,
             'status' => 'paid',
