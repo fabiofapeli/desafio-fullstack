@@ -1,9 +1,10 @@
-export const Home = () => {
+export default function HomePage() {
   return (
-    <div className="flex items-center justify-center h-screen">
-      <h1 className="text-orange-400 text-2xl">
-        Desafio para Desenvolvedor - Inmediam
-      </h1>
-    </div>
-  )
+    <section className="grid place-items-center h-[60vh]">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Home</h1>
+        <p className="text-gray-600">Em andamento...</p>
+      </div>
+    </section>
+  );
 }
