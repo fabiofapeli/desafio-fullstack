@@ -131,8 +131,7 @@ class ContractController extends Controller
 
             return response()->json([
                 'contract' => $output->contract,
-                'plan' => $output->plan,
-                'payments' => $output->payments,
+                'plan' => $output->plan
             ], Response::HTTP_OK);
 
         } catch (BusinessException $e) {
