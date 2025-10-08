@@ -49,7 +49,20 @@ export interface ActivePlanResponse {
     }>;
 }
 
+export interface PaymentHistoryItem {
+    data_pagamento: string;
+    data_expiracao: string;
+    plano: string;
+    tipo: string;             // "Compra" | "Renovação"
+    forma_pagamento: string;  // "PIX"
+    valor_plano: string;      // "100,00"
+    credito: string;          // "0,00"
+    valor_pago: string;       // "100,00"
+}
+
 export const api = {
     getUser: () => getJSON<User>('/api/user'),
     getActive: () => getJSON<ActivePlanResponse>('/api/plans/active'),
+    getPaymentsHistory: () => getJSON<PaymentHistoryItem[]>('/api/payments/history'), // ⬅️ novo
 };
+

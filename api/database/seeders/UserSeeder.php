@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Src\Infra\Eloquent\UserModel;
 
 class UserSeeder extends Seeder
 {
@@ -15,7 +14,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        User::create([
+        UserModel::create([
             'name' => 'Usuário da Silva',
             'email' => 'usuario@silva.com',
         ]);

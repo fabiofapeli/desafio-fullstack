@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Plan;
+
 use Illuminate\Database\Seeder;
+use Src\Infra\Eloquent\PlanModel;
 
 class PlanSeeder extends Seeder
 {
@@ -54,7 +55,7 @@ class PlanSeeder extends Seeder
         ];
 
         foreach ($plans as $plan) {
-            Plan::create($plan);
+            PlanModel::create($plan);
         }
     }
 }

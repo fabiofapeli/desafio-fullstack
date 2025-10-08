@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, ActivePlanResponse, User } from "@/lib/api.ts";
+import { api, ActivePlanResponse, User } from "../../lib/api";
 
 function currencyBRL(v?: number) {
     if (v == null) return "-";
@@ -26,9 +26,10 @@ export default function HomePage() {
 
         async function load() {
             try {
-                const [u] = await Promise.all([api.getUser()]);
+                const u = await api.getUser();
                 if (!isMounted) return;
-                setUser(u.user);
+                // ajuste conforme a forma que sua API retorna
+                setUser((u as any).user ?? u);
 
                 try {
                     const a = await api.getActive();
@@ -55,6 +56,7 @@ export default function HomePage() {
         load();
         return () => { isMounted = false; };
     }, []);
+
 
     return (
         <div className="space-y-6">

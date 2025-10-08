@@ -1,0 +1,5 @@
+# JetBrains / IntelliJ / PhpStorm
+.idea/
+*.iml
+# (opcional) VS Code
+.vscode/

@@ -3,6 +3,7 @@
 namespace Src\Domain\Services;
 
 use Src\Infra\Eloquent\PaymentModel;
+use Carbon\Carbon;
 
 class PaymentService
 {
@@ -11,6 +12,7 @@ class PaymentService
         $payments = PaymentModel::query()
             ->select([
                 'payments.payment_at',
+                'contracts.expiration_date',
                 'plans.description as plan',
                 'payments.action',
                 'payments.type',
@@ -26,7 +28,8 @@ class PaymentService
 
         return $payments->map(function ($p) {
             return [
-                'data_pagamento' => $p->payment_at->format('d/m/Y'),
+                'data_pagamento' => Carbon::parse($p->payment_at)->format('d/m/Y'),
+                'data_expiracao' => Carbon::parse($p->expiration_date)->format('d/m/Y'),
                 'plano' => $p->plan,
                 'tipo' => match ($p->action) {
                     'renewal' => 'Renovação',

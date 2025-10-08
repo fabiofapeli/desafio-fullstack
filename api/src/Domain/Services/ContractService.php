@@ -139,13 +139,11 @@ class ContractService
         $oldPlan = PlanModel::findOrFail($activeContract->plan_id);
         $newPlan = PlanModel::findOrFail($input->newPlanId);
 
-        // cálculo de crédito proporcional
-        $daysInMonth = 30;
-        $daysUsed = $activeContract->started_at->diffInDays($now);
-        $daysRemaining = max($daysInMonth - $daysUsed, 0);
-
-        $dailyRateOld = $oldPlan->price / $daysInMonth;
-        $credit = round($daysRemaining * $dailyRateOld, 2);
+        $cycleStart = Carbon::parse($activeContract->expiration_date)->subMonthNoOverflow();
+        $daysInCycle = $cycleStart->daysInMonth; // ou 28 fixo se quiser política comercial
+        $daysRemaining = max(0, $now->diffInDays(Carbon::parse($activeContract->expiration_date), false));
+        $dailyRateOld = $oldPlan->price / $daysInCycle;
+        $credit = round($dailyRateOld * $daysRemaining, 2);
 
         // valor do novo pagamento = novo plano - crédito
         $amountToPay = max($newPlan->price - $credit, 0);
