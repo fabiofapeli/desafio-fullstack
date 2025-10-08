@@ -99,7 +99,7 @@ export default function HomePage() {
                         </div>
                     </div>
                     <Link
-                        to="/pre-transaction"
+                        to="/plans"
                         className="rounded-full bg-black text-white px-5 py-2 text-sm font-medium hover:opacity-90"
                     >
                         Ver planos
@@ -148,7 +148,7 @@ export default function HomePage() {
 
                         <div className="mt-4">
                             <Link
-                                to={`/pre-transaction?plan_id=${active.plan.id}`}
+                                to={`/order?plan_id=${active.plan.id}`}
                                 className="inline-flex items-center justify-center rounded-md bg-[#F5BE01] px-4 py-2 text-black font-medium hover:opacity-90"
                             >
                                 Renovar plano

@@ -3,7 +3,7 @@ import Layout from "./components/Layout";
 import HomePage from "./pages/Home";
 import HistoryPage from "./pages/History";
 import PlansPage from "./pages/Plans";
-import PreTransactionPage from "./pages/PreTransaction";
+import Order from "./pages/Order";
 
 export default function Router() {
     return (
@@ -13,7 +13,7 @@ export default function Router() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/history" element={<HistoryPage />} />
                     <Route path="/plans" element={<PlansPage />} />
-                    <Route path="/pre-transaction" element={<PreTransactionPage />} /> {/* ⬅ novo */}
+                    <Route path="/order" element={<Order />} /> {/* ⬅ novo */}
                 </Route>
             </Routes>
         </BrowserRouter>
