@@ -5,6 +5,7 @@ namespace Src\Domain\Services;
 use Carbon\Carbon;
 use Src\Domain\Entities\Enums\RenewalPolicy;
 use Src\Infra\Eloquent\ContractModel;
+use Src\Infra\Eloquent\PlanModel;
 
 class ContractService
 {
@@ -113,5 +114,53 @@ class ContractService
             'days_remaining' => $daysRemaining,
             'daily_old'      => $dailyOld,
         ];
+    }
+
+    /**
+     * Retorna se o usuário possui contrato ativo e ainda válido (não expirado).
+     */
+    public function hasValidActiveContract(int $userId, ?Carbon $now = null): bool
+    {
+        $now = $now ?: Carbon::now();
+        $active = $this->getActivePlan($userId);
+
+        if (!$active || $active->status !== 'active') {
+            return false;
+        }
+
+        // Se tiver expiration_date e já passou, considera inválido
+        if ($active->expiration_date && $now->gt(Carbon::parse($active->expiration_date))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Retorna o "orçamento" para troca de plano: crédito e preço final.
+     * Crédito = (dias restantes * preço diário do plano atual), onde preço diário = preço_mensal / dias_do_mês_corrente.
+     *
+     * @return array{credit: float, price: float}
+     */
+    public function getChangePlanQuote(ContractModel $active, PlanModel $newPlan, ?Carbon $now = null): array
+    {
+        $now = $now ?: Carbon::now();
+
+        // contrato ativo deve ter relação.plan carregada
+        if (!$active->relationLoaded('plan')) {
+            $active->load('plan');
+        }
+
+        $expiration = Carbon::parse($active->expiration_date);
+        // diffInDays(false) pode retornar negativo; garante mínimo 0
+        $daysRemaining = max(0, $now->diffInDays($expiration, false));
+
+        $daysInMonth = $now->daysInMonth ?: 30; // fallback seguro
+        $oldDaily = $active->plan ? ($active->plan->price / $daysInMonth) : 0.0;
+
+        $credit = round($oldDaily * $daysRemaining, 2);
+        $price  = round(max(0, $newPlan->price - $credit), 2);
+
+        return ['credit' => $credit, 'price' => $price];
     }
 }
