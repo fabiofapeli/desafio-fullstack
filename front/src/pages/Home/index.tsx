@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, ActivePlanResponse, User } from "../../lib/api";
+import { api } from "../../lib/api";
+import {ActivePlanResponse} from "@/types/Response.ts";
+import {User} from "@/types/Entities.ts";
 
 function currencyBRL(v?: number) {
     if (v == null) return "-";
@@ -29,7 +31,7 @@ export default function HomePage() {
                 const u = await api.getUser();
                 if (!isMounted) return;
                 // ajuste conforme a forma que sua API retorna
-                setUser((u as any).user ?? u);
+                setUser('user' in u ? u.user as User : u as User);
 
                 try {
                     const a = await api.getActive();

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { api, PaymentHistoryItem } from "../../lib/api";
+import { api } from "../../lib/api";
+import { PaymentHistoryItem } from "@/types/Response";
+import {paymentTypeTranslation} from "@/utils/translations.ts";
 
 export default function HistoryPage() {
     const [items, setItems] = useState<PaymentHistoryItem[]>([]);
@@ -69,13 +71,13 @@ export default function HistoryPage() {
                                 <tbody className="divide-y divide-gray-100 text-gray-800">
                                 {items.map((it, idx) => (
                                     <tr key={idx} className="[&>td]:py-3 [&>td]:px-4">
-                                        <td>{it.data_pagamento}</td>
-                                        <td>{it.plano}</td>
-                                        <td>{it.tipo}</td>
-                                        <td>{it.forma_pagamento}</td>
-                                        <td>R$ {it.valor_plano}</td>
-                                        <td>R$ {it.credito}</td>
-                                        <td className="font-semibold">R$ {it.valor_pago}</td>
+                                        <td>{it.payment_at}</td>
+                                        <td>{it.plan}</td>
+                                        <td>{paymentTypeTranslation[it.type] ?? "—"}</td>
+                                        <td>{it.payment_method}</td>
+                                        <td>R$ {it.price}</td>
+                                        <td>R$ {it.credit}</td>
+                                        <td className="font-semibold">R$ {it.total}</td>
                                     </tr>
                                 ))}
                                 </tbody>

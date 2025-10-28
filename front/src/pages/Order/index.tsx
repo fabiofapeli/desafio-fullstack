@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { api, PreviewResponse } from "../../lib/api";
+import { api } from "../../lib/api";
+import {PreviewResponse} from "@/types/Response.ts";
 
 const fmtBRL = (v?: number | null) =>
     v == null

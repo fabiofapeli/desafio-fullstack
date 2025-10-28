@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, Plan } from "../../lib/api";
+import { api } from "../../lib/api";
+import {Plan} from "@/types/Entities.ts";
 
 function currencyBRL(v: number) {
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

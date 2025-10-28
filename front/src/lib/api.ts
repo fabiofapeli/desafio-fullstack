@@ -1,6 +1,9 @@
 // src/lib/api.ts
 
 // Base da API
+import {Contract, Payment, Plan, User} from "@/types/Entities.ts";
+import {ActivePlanResponse, PaymentHistoryItem, PreviewResponse} from "@/types/Response.ts";
+
 export const API_BASE =
     import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
@@ -42,58 +45,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 /** GET simples (aqui só delega pro request) */
 const getJSON = <T,>(path: string) => request<T>(path);
 
-/* ===== Tipos ===== */
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
-export interface Plan {
-    id: number;
-    description: string;
-    numberOfClients?: number;
-    gigabytesStorage?: number;
-    price: number;
-    active?: boolean;
-}
-
-export interface ActivePlanResponse {
-    contract: {
-        id: number;
-        status: "active" | "inactive";
-        started_at?: string | null;
-        expiration_date?: string | null;
-    };
-    plan: Plan;
-    payments: Array<{
-        id: number;
-        price: number;
-        credit: number;
-        payment_at: string;
-        status: string;
-    }>;
-}
-
-export interface PaymentHistoryItem {
-    data_pagamento: string;
-    data_expiracao: string;
-    plano: string;
-    tipo: string;            // "Compra" | "Renovação"
-    forma_pagamento: string; // "PIX"
-    valor_plano: string;     // "100,00"
-    credito: string;         // "0,00"
-    valor_pago: string;      // "100,00"
-}
-
-export interface PreviewResponse {
-    plan: Plan;
-    action: "purchase" | "renew" | "change_plan";
-    renewal_window?: { available_from: string; expiration_date: string } | null;
-    credit?: number | null; // para change_plan
-    price?: number | null;  // para change_plan
-}
-
 /* ===== Endpoints normalizados ===== */
 export const api = {
     getUser: () => getJSON<User>("/api/user"),
@@ -108,19 +59,19 @@ export const api = {
         getJSON<PreviewResponse>(`/api/contracts/preview?plan_id=${planId}`),
 
     subscribe: (planId: number) =>
-        request<{ plan: Plan; payment: any }>("/api/contracts", {
+        request<{ plan: Plan; payment: Payment }>("/api/contracts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ plan_id: planId }),
         }),
 
     renew: () =>
-        request<{ contract: any; payment: any }>("/api/contracts/renew", {
+        request<{ contract: Contract; payment: Payment }>("/api/contracts/renew", {
             method: "POST",
         }),
 
     changePlan: (newPlanId: number) =>
-        request<{ contract: any; payment: any }>("/api/contracts/change-plan", {
+        request<{ contract: Contract; payment: Payment }>("/api/contracts/change-plan", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ new_plan_id: newPlanId }),

@@ -28,17 +28,17 @@ class PaymentService
 
         return $payments->map(function ($p) {
             return [
-                'data_pagamento' => Carbon::parse($p->payment_at)->format('d/m/Y'),
-                'data_expiracao' => Carbon::parse($p->expiration_date)->format('d/m/Y'),
-                'plano' => $p->plan,
-                'tipo' => match ($p->action) {
-                    'renewal' => 'Renovação',
-                    default => 'Compra',
+                'payment_at' => Carbon::parse($p->payment_at)->format('d/m/Y'),
+                'expiration_date' => Carbon::parse($p->expiration_date)->format('d/m/Y'),
+                'plan' => $p->plan,
+                'type' => match ($p->action) {
+                    'renewal' => 'renew',
+                    default => 'purchase',
                 },
-                'forma_pagamento' => strtoupper($p->type ?? 'PIX'),
-                'valor_plano' => number_format($p->plan_value, 2, ',', '.'),
-                'credito' => number_format($p->credit, 2, ',', '.'),
-                'valor_pago' => number_format($p->price, 2, ',', '.'),
+                'payment_method' => strtoupper($p->type ?? 'PIX'),
+                'price' => number_format($p->plan_value, 2, ',', '.'),
+                'credit' => number_format($p->credit, 2, ',', '.'),
+                'total' => number_format($p->price, 2, ',', '.'),
             ];
         })->toArray();
     }
