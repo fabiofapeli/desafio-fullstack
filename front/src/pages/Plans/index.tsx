@@ -1,6 +1,6 @@
 import { api } from "../../lib/api";
 import {useQuery} from "@tanstack/react-query";
-import {useNavigate} from "react-router-dom";
+import {NavigateFunction, useNavigate} from "react-router-dom";
 import {ActivePlanResponse} from "@/types/Response.ts";
 import {Plan} from "@/types/Entities.ts";
 
@@ -9,7 +9,7 @@ function currencyBRL(v: number) {
 }
 
 export default function PlansPage() {
-    const navigate = useNavigate();
+    const navigate: NavigateFunction = useNavigate();
     const { data: plans, isLoading, error} = useQuery({
         queryKey: ["plans"],
         queryFn: (): Promise<Plan[]> => api.listPlans(),

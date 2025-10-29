@@ -29,9 +29,7 @@ class UserController extends Controller
             ], Response::HTTP_OK);
 
         } catch (BusinessException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], Response::HTTP_NOT_FOUND);
+            return response()->json(null, Response::HTTP_OK);
 
         } catch (\Throwable $e) {
             return response()->json([

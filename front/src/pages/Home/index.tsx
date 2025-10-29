@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
-import {ActivePlanResponse} from "@/types/Response.ts";
-import {User} from "@/types/Entities.ts";
+import {useQuery} from "@tanstack/react-query";
+import {ActivePlanResponse, UserLoggedResponse} from "@/types/Response.ts";
+import {User, Plan, Contract } from "@/types/Entities.ts";
+import {Link} from "react-router-dom";
 
 function currencyBRL(v?: number) {
     if (v == null) return "-";
@@ -17,48 +17,25 @@ function dateBR(d?: string | null) {
 }
 
 export default function HomePage() {
-    const [user, setUser] = useState<User | null>(null);
-    const [active, setActive] = useState<ActivePlanResponse | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [notFound, setNotFound] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        let isMounted = true;
+    const { data: userResponse, isLoading, error} = useQuery({
+        queryKey: ["user"],
+        queryFn: (): Promise<UserLoggedResponse> => api.getUser(),
+    })
 
-        async function load() {
-            try {
-                const u = await api.getUser();
-                if (!isMounted) return;
-                // ajuste conforme a forma que sua API retorna
-                setUser('user' in u ? u.user as User : u as User);
+    const { data: active, isLoading: LoadingActivePlan} = useQuery({
+        queryKey: ["activePlan"],
+        queryFn: (): Promise<ActivePlanResponse> => api.getActive(),
+    })
 
-                try {
-                    const a = await api.getActive();
-                    if (!isMounted) return;
-                    setActive(a);
-                    setNotFound(false);
-                } catch (err: any) {
-                    if (!isMounted) return;
-                    if (err?.status === 404) {
-                        setNotFound(true);
-                    } else {
-                        setError("Não foi possível carregar o plano ativo.");
-                        console.error(err);
-                    }
-                }
-            } catch (err) {
-                setError("Não foi possível carregar seus dados.");
-                console.error(err);
-            } finally {
-                if (isMounted) setLoading(false);
-            }
-        }
+    const user: User | undefined = userResponse?.user;
+    const plan: Plan | undefined = active?.plan;
+    const contract: Contract | undefined = active?.contract;
 
-        load();
-        return () => { isMounted = false; };
-    }, []);
-
+    const isLoadingData = isLoading || LoadingActivePlan;
+    const hasError = !!error;
+    const hasNoPlan = !contract;
+    const hasActivePlan = !!contract && !!plan;
 
     return (
         <div className="space-y-6">
@@ -71,21 +48,21 @@ export default function HomePage() {
             </div>
 
             {/* estados de carregamento/erro */}
-            {loading && (
+            {isLoadingData && (
                 <div className="animate-pulse rounded-lg bg-white p-6 shadow">
                     <div className="h-4 w-40 bg-gray-200 rounded mb-3" />
                     <div className="h-4 w-64 bg-gray-200 rounded" />
                 </div>
             )}
 
-            {error && !loading && (
+            {hasError && !isLoadingData && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-                    {error}
+                    Erro ao carregar os dados
                 </div>
             )}
 
             {/* sem plano ativo → card cute com CTA */}
-            {!loading && !error && notFound && (
+            {!isLoadingData && !hasError && hasNoPlan && (
                 <div className="rounded-2xl bg-gradient-to-br from-yellow-100 via-amber-100 to-yellow-200 border border-yellow-300/60 shadow p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-full bg-[#F5BE01] text-black grid place-items-center text-xl font-extrabold">
@@ -110,7 +87,7 @@ export default function HomePage() {
             )}
 
             {/* com plano ativo → exibir detalhes e CTA de renovação */}
-            {!loading && !error && active && (
+            {!isLoadingData && !hasError && hasActivePlan && (
                 <div className="grid gap-6 md:grid-cols-2">
                     <div className="rounded-xl bg-white p-6 shadow">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -118,17 +95,17 @@ export default function HomePage() {
                         </h3>
                         <dl className="grid grid-cols-2 gap-3 text-sm">
                             <dt className="text-gray-500">Descrição</dt>
-                            <dd className="text-gray-900">{active.plan.description}</dd>
+                            <dd className="text-gray-900">{plan.description}</dd>
 
                             <dt className="text-gray-500">Preço</dt>
-                            <dd className="text-gray-900">{currencyBRL(active.plan.price)}</dd>
+                            <dd className="text-gray-900">{currencyBRL(plan.price)}</dd>
 
                             <dt className="text-gray-500">Clientes</dt>
-                            <dd className="text-gray-900">{active.plan.numberOfClients ?? "-"}</dd>
+                            <dd className="text-gray-900">{plan.numberOfClients ?? "-"}</dd>
 
                             <dt className="text-gray-500">Armazenamento</dt>
                             <dd className="text-gray-900">
-                                {active.plan.gigabytesStorage ? `${active.plan.gigabytesStorage} GB` : "-"}
+                                {plan.gigabytesStorage ? `${plan.gigabytesStorage} GB` : "-"}
                             </dd>
                         </dl>
                     </div>
@@ -139,18 +116,18 @@ export default function HomePage() {
                         </h3>
                         <dl className="grid grid-cols-2 gap-3 text-sm flex-1">
                             <dt className="text-gray-500">Status</dt>
-                            <dd className="text-gray-900 capitalize">{active.contract.status}</dd>
+                            <dd className="text-gray-900 capitalize">{contract.status}</dd>
 
                             <dt className="text-gray-500">Início</dt>
-                            <dd className="text-gray-900">{dateBR(active.contract.started_at)}</dd>
+                            <dd className="text-gray-900">{dateBR(contract.started_at)}</dd>
 
                             <dt className="text-gray-500">Vencimento</dt>
-                            <dd className="text-gray-900">{dateBR(active.contract.expiration_date)}</dd>
+                            <dd className="text-gray-900">{dateBR(contract.expiration_date)}</dd>
                         </dl>
 
                         <div className="mt-4">
                             <Link
-                                to={`/order?plan_id=${active.plan.id}`}
+                                to={`/order?plan_id=${plan.id}`}
                                 className="inline-flex items-center justify-center rounded-md bg-[#F5BE01] px-4 py-2 text-black font-medium hover:opacity-90"
                             >
                                 Renovar plano
@@ -159,6 +136,8 @@ export default function HomePage() {
                     </div>
                 </div>
             )}
+
         </div>
+
     );
 }

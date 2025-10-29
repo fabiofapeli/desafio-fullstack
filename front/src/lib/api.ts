@@ -1,8 +1,8 @@
 // src/lib/api.ts
 
 // Base da API
-import {Contract, Payment, Plan, User} from "@/types/Entities.ts";
-import {ActivePlanResponse, PaymentHistoryItem, PreviewResponse} from "@/types/Response.ts";
+import {Contract, Payment, Plan} from "@/types/Entities.ts";
+import {ActivePlanResponse, PaymentHistoryItem, PreviewResponse, UserLoggedResponse} from "@/types/Response.ts";
 
 export const API_BASE =
     import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
@@ -47,7 +47,7 @@ const getJSON = <T,>(path: string) => request<T>(path);
 
 /* ===== Endpoints normalizados ===== */
 export const api = {
-    getUser: (): Promise<User> => getJSON<User>("/api/user"),
+    getUser: (): Promise<UserLoggedResponse> => getJSON<UserLoggedResponse>("/api/user"),
 
     getActive: (): Promise<ActivePlanResponse> => getJSON<ActivePlanResponse>("/api/plans/active"),
 

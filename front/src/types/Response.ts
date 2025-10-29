@@ -1,9 +1,13 @@
-import {ActionStatus, Contract, Payment, Plan} from "@/types/Entities.ts";
+import {ActionStatus, Contract, Payment, Plan, User} from "@/types/Entities.ts";
 
 export interface ActivePlanResponse {
     contract: Contract;
     plan: Plan;
     payments: Payment[];
+}
+
+export interface UserLoggedResponse {
+    user: User;
 }
 
 export interface PaymentHistoryItem {
