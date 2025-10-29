@@ -134,12 +134,7 @@ class ContractController extends Controller
                 'plan' => $output->plan
             ], Response::HTTP_OK);
 
-        } catch (BusinessException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], Response::HTTP_NOT_FOUND);
-
-        } catch (\Throwable $e) {
+        }  catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Server Error',
                 'error' => $e->getMessage(),

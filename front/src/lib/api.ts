@@ -47,15 +47,15 @@ const getJSON = <T,>(path: string) => request<T>(path);
 
 /* ===== Endpoints normalizados ===== */
 export const api = {
-    getUser: () => getJSON<User>("/api/user"),
+    getUser: (): Promise<User> => getJSON<User>("/api/user"),
 
-    getActive: () => getJSON<ActivePlanResponse>("/api/plans/active"),
+    getActive: (): Promise<ActivePlanResponse> => getJSON<ActivePlanResponse>("/api/plans/active"),
 
-    listPlans: () => getJSON<Plan[]>("/api/plans"),
+    listPlans: (): Promise<Plan[]> => getJSON<Plan[]>("/api/plans"),
 
-    getPaymentsHistory: () => getJSON<PaymentHistoryItem[]>("/api/payments/history"),
+    getPaymentsHistory: (): Promise<PaymentHistoryItem[]> => getJSON<PaymentHistoryItem[]>("/api/payments/history"),
 
-    preview: (planId: number) =>
+    preview: (planId: number): Promise<PreviewResponse> =>
         getJSON<PreviewResponse>(`/api/contracts/preview?plan_id=${planId}`),
 
     subscribe: (planId: number) =>

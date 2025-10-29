@@ -19,7 +19,7 @@ class GetActivePlanUseCase
         $contract = $this->contractService->getActivePlan($input->userId);
 
         if (!$contract) {
-            throw new BusinessException('Usuário não possui contrato ativo.');
+            return new GetActivePlanOutputDto();
         }
 
         $contract->load(['plan', 'payments']);

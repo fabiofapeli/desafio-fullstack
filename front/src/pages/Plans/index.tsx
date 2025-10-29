@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import {useQuery} from "@tanstack/react-query";
+import {useNavigate} from "react-router-dom";
+import {ActivePlanResponse} from "@/types/Response.ts";
 import {Plan} from "@/types/Entities.ts";
 
 function currencyBRL(v: number) {
@@ -8,55 +9,31 @@ function currencyBRL(v: number) {
 }
 
 export default function PlansPage() {
-    const [plans, setPlans] = useState<Plan[]>([]);
-    const [activePlanId, setActivePlanId] = useState<number | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { data: plans, isLoading, error} = useQuery({
+        queryKey: ["plans"],
+        queryFn: (): Promise<Plan[]> => api.listPlans(),
+    })
 
-    useEffect(() => {
-        let alive = true;
+    const { data: activePlan, isLoading: LoadingActivePlan} = useQuery({
+        queryKey: ["activePlan"],
+        queryFn: (): Promise<ActivePlanResponse> => api.getActive(),
+    })
 
-        (async () => {
-            try {
-                // plano ativo (404 = sem plano)
-                try {
-                    const active = await api.getActive();
-                    if (alive) setActivePlanId(active.plan?.id ?? null);
-                } catch (e: any) {
-                    if (e?.status === 404) {
-                        if (alive) setActivePlanId(null);
-                    } else {
-                        console.error("Erro ao buscar plano ativo:", e);
-                    }
-                }
+    const activePlanId: number | null = activePlan?.plan?.id ?? null;
 
-                // lista de planos
-                const list = await api.listPlans();
-                if (alive) setPlans(list);
-            } catch (e: any) {
-                console.error(e);
-                if (alive) setError(e?.message ?? "Erro ao carregar planos.");
-            } finally {
-                if (alive) setLoading(false);
-            }
-        })();
-
-        return () => { alive = false; };
-    }, []);
-
-    function ctaLabel(planId: number) {
+    function ctaLabel(planId: number): string {
         if (activePlanId === null) return "Comprar plano";
         if (activePlanId === planId) return "Renovar";
         return "Mudar de plano";
     }
 
-    function handleCTA(planId: number) {
+    function handleCTA(planId: number): void {
         // Pré-transação será implementada depois
         navigate(`/order?plan_id=${planId}`);
     }
 
-    if (loading) {
+    if (isLoading || LoadingActivePlan) {
         return (
             <div className="rounded-xl bg-white p-6 shadow animate-pulse">
                 <div className="h-4 w-40 bg-gray-200 rounded mb-3" />
@@ -68,7 +45,7 @@ export default function PlansPage() {
     if (error) {
         return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-                {error}
+                Erro ao carregar planos.
             </div>
         );
     }
@@ -81,7 +58,7 @@ export default function PlansPage() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {plans.map((p) => {
+                {plans?.map((p) => {
                     const isActive = activePlanId === p.id;
                     return (
                         <article
