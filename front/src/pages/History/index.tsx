@@ -1,31 +1,16 @@
-import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { PaymentHistoryItem } from "@/types/Response";
 import {paymentTypeTranslation} from "@/utils/translations.ts";
+import {useQuery} from "@tanstack/react-query";
 
 export default function HistoryPage() {
-    const [items, setItems] = useState<PaymentHistoryItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        let alive = true;
+    const { data, isLoading, error} = useQuery({
+        queryKey: ["paymentsHistory"],
+        queryFn: (): Promise<PaymentHistoryItem[]> => api.getPaymentsHistory(),
+    })
 
-        (async () => {
-            try {
-                const data = await api.getPaymentsHistory();
-                if (!alive) return;
-                setItems(data);
-            } catch (err) {
-                console.error(err);
-                setError("Não foi possível carregar o histórico.");
-            } finally {
-                if (alive) setLoading(false);
-            }
-        })();
-
-        return () => { alive = false; };
-    }, []);
+    const items: PaymentHistoryItem[] = data ?? [];
 
     return (
         <section className="space-y-6">
@@ -34,7 +19,7 @@ export default function HistoryPage() {
                 <p className="text-gray-600">Veja suas compras, renovações e trocas de plano.</p>
             </div>
 
-            {loading && (
+            {isLoading && (
                 <div className="rounded-lg bg-white p-6 shadow animate-pulse">
                     <div className="h-4 w-40 bg-gray-200 rounded mb-3" />
                     <div className="h-4 w-full bg-gray-200 rounded mb-2" />
@@ -42,13 +27,13 @@ export default function HistoryPage() {
                 </div>
             )}
 
-            {error && !loading && (
+            {error && !isLoading && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-                    {error}
+                    Erro ao carregar dados
                 </div>
             )}
 
-            {!loading && !error && (
+            {!isLoading && !error && (
                 <>
                     {items.length === 0 ? (
                         <div className="rounded-lg bg-white p-6 shadow">
