@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { api } from "../../lib/api";
+import { useQuery, useMutation} from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import {PreviewResponse} from "@/types/Response.ts";
 
 const fmtBRL = (v?: number | null) =>
@@ -11,7 +12,7 @@ const fmtBRL = (v?: number | null) =>
 const fmtDate = (s?: string | null) =>
     s ? new Date(s).toLocaleDateString("pt-BR") : "-";
 
-function useQuery() {
+function useSearchParams(): URLSearchParams {
     const { search } = useLocation();
     return useMemo(() => new URLSearchParams(search), [search]);
 }
@@ -27,70 +28,39 @@ function isWithinWindow(window?: { available_from: string; expiration_date: stri
 }
 
 export default function OrderPage() {
-    const q = useQuery();
+    const q = useSearchParams();
     const planId = Number(q.get("plan_id"));
     const navigate = useNavigate();
 
-    const [data, setData] = useState<PreviewResponse | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [err, setErr] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [result, setResult] = useState<any | null>(null);
-
-    useEffect(() => {
-        let alive = true;
-
-        (async () => {
-            if (!planId || Number.isNaN(planId)) {
-                setErr("Plano inválido.");
-                setLoading(false);
-                return;
-            }
-            try {
-                const r = await api.preview(planId);
-                if (!alive) return;
-                setData(r);
-            } catch (e: any) {
-                console.error(e);
-                setErr(e?.data?.message ?? "Não foi possível carregar a prévia.");
-            } finally {
-                if (alive) setLoading(false);
-            }
-        })();
-
-        return () => {
-            alive = false;
-        };
-    }, [planId]);
-
-    async function handleConfirm() {
-        if (!data) return;
-        setSubmitting(true);
-        setErr(null);
-        try {
-            let r: any;
-            if (data.action === "purchase") {
-                r = await api.subscribe(data.plan.id);
-                // ✅ compra: redireciona para Home
-                navigate("/");
-                return;
-            } else if (data.action === "renew") {
-                r = await api.renew();
+    const mutation = useMutation<void, Error>({
+        mutationFn: async () => {
+            if (action === "purchase") {
+                await api.subscribe(planId);
+            } else if (action === "renew") {
+                await api.renew();
             } else {
-                r = await api.changePlan(data.plan.id);
-                navigate("/");
-                return;
+                await api.changePlan(planId);
             }
-            setResult(r);
-        } catch (e: any) {
-            console.error(e);
-            setErr(e?.data?.message ?? "Falha ao executar a transação.");
-        } finally {
-            setSubmitting(false);
+        },
+        onSuccess: () => {
+            if (action === "purchase" || action === "change_plan") {
+                navigate("/");
+            }
+        },
+        onError: (err) => {
+            console.error("Erro na transação:", err.message);
         }
-    }
+    });
 
-    if (loading) {
+
+    const {data, isLoading, error} = useQuery({
+        queryKey: ["plan", planId],
+        queryFn: (): Promise<PreviewResponse> => api.preview(planId),
+    })
+
+    const err = null;
+
+    if (isLoading) {
         return (
             <div className="rounded-2xl bg-white p-6 shadow-md animate-pulse">
                 <div className="h-4 w-48 bg-gray-200 rounded mb-3" />
@@ -99,7 +69,7 @@ export default function OrderPage() {
         );
     }
 
-    if (err) {
+    if (error) {
         return (
             <section className="space-y-4">
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{err}</div>
@@ -154,7 +124,7 @@ export default function OrderPage() {
                 <div className="p-6 text-gray-800 grid gap-6 sm:grid-cols-2">
                     <div>
                         <div className="text-sm font-semibold text-gray-600">Valor do plano</div>
-                        <div className="mt-1 text-3xl font-extrabold">{fmtBRL(plan.price)}</div>
+                        <div className="mt-1 text-2xl font-extrabold">{fmtBRL(plan.price)}</div>
                     </div>
                     <div>
                         <div className="text-sm font-semibold text-gray-600">Armazenamento</div>
@@ -221,23 +191,22 @@ export default function OrderPage() {
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="text-gray-600">Valor a pagar</span>
                                 <span className="font-semibold text-gray-900">
-                  {fmtBRL(price ?? plan.price)}
-                </span>
+                                  {fmtBRL(price ?? plan.price)}
+                                </span>
                             </div>
                         </div>
                     </div>
                 )}
-
                 {/* Ações */}
                 <div className="mt-4 flex flex-wrap gap-3">
                     {/* Esconde botão confirmar quando for renew fora da janela */}
                     {!(action === "renew" && !canRenew) && (
                         <button
-                            onClick={handleConfirm}
-                            disabled={submitting}
+                            onClick={() => mutation.mutate()}
+                            disabled={mutation.isPending}
                             className="inline-flex items-center justify-center rounded-md bg-[#F5BE01] px-5 py-2.5 text-sm font-medium text-black hover:opacity-90 disabled:opacity-60"
                         >
-                            {submitting ? "Processando..." : confirmLabel}
+                            {mutation.isPending ? "Processando..." : confirmLabel}
                         </button>
                     )}
 
@@ -250,7 +219,7 @@ export default function OrderPage() {
                 </div>
 
                 {/* Resultado (mostrado para renovação/troca; compra já redireciona) */}
-                {result && (
+                {mutation.isSuccess && action === "renew" && (
                     <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
                         Transação concluída! Você pode conferir em{" "}
                         <Link className="underline" to="/history">
@@ -260,5 +229,6 @@ export default function OrderPage() {
                 )}
             </article>
         </section>
-    );
+    )
+
 }
